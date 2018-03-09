@@ -9,10 +9,11 @@ python简单的方式使用mysql数据库，分为Dao类和MySQLDB类
 - python setup.py install
 
 
-###简单实例：
+### 简单实例：
 
 >dao_test.py
-```
+
+```python
 from usemysql.Dao import Dao
 import time
 
@@ -76,8 +77,9 @@ print('查找%s' % res)
 # 执行sql语句
 print(dao.mysql_db_obj.get_one('select * from plant where id=%s', [1200]))
 ```
+
 关于条件，需满足这种形式
-```
+```json
 {
 	'filed1':['>|<|=|like','value1'],
 	'field2':['not in'|'in',[1,2,3,4,5]]
@@ -86,7 +88,8 @@ print(dao.mysql_db_obj.get_one('select * from plant where id=%s', [1200]))
 ```
 ---
 >mysqldb_test.py
-```
+
+```python
 from usemysql.MySQLDB import MySQLDB
 
 # 连接数据库配置文件
