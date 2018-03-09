@@ -9,12 +9,27 @@ from .MySQLDB import MySQLDB
 
 
 class Dao(object):
-    table = ''
+    __table = ''
     mysql_db_obj = None
 
-    def __init__(self, config, table):
+    def __init__(self, config):
         self.mysql_db_obj = MySQLDB(config)
-        self.table = table
+
+    def set_table(self, table):
+        """
+        设置当前操作表
+        :param table: 表名
+        :return: self
+        """
+        self.__table = table
+        return self
+
+    def get_table(self):
+        """
+        获取当前操作表
+        :return: 表名
+        """
+        return self.__table
 
     def create(self, data={}):
         """
@@ -31,7 +46,7 @@ class Dao(object):
             holder += '%s,'
         fields = fields.strip(',')
         holder = holder.strip(',')
-        sql = 'INSERT INTO `%s`(%s) VALUES (%s)' % (self.table, fields, holder)
+        sql = 'INSERT INTO `%s`(%s) VALUES (%s)' % (self.__table, fields, holder)
         return self.mysql_db_obj.insert(sql, values)
 
     def batch_create(self, data=[]):
@@ -50,7 +65,7 @@ class Dao(object):
                 sql += ' * '
             else:
                 sql += '`' + field + '`,'
-        sql = sql.strip(',') + ' FROM `%s` WHERE %s' % (self.table, where)
+        sql = sql.strip(',') + ' FROM `%s` WHERE %s' % (self.__table, where)
         if group_by != '':
             sql += ' GROUP BY `%s`' % (group_by)
         if len(having) > 0:
@@ -73,7 +88,7 @@ class Dao(object):
         :return: 字典
         """
         where, values = self.__where(conditions)
-        sql = 'SELECT * FROM `%s` WHERE %s LIMIT 1' % (self.table, where)
+        sql = 'SELECT * FROM `%s` WHERE %s LIMIT 1' % (self.__table, where)
         return self.mysql_db_obj.get_one(sql, values)
 
     def save(self, conditions, data):
@@ -93,7 +108,7 @@ class Dao(object):
         values.extend(values_)
         fields = fields.strip(',')
         where = where.strip('AND')
-        sql = 'UPDATE `%s` SET %s WHERE %s' % (self.table, fields, where)
+        sql = 'UPDATE `%s` SET %s WHERE %s' % (self.__table, fields, where)
         return self.mysql_db_obj.update(sql, values)
 
     def delete(self, conditions):
@@ -103,7 +118,7 @@ class Dao(object):
         :return: 影响行数
         """
         where, values = self.__where(conditions)
-        sql = 'DELETE FROM `%s` WHERE %s' % (self.table, where)
+        sql = 'DELETE FROM `%s` WHERE %s' % (self.__table, where)
         return self.mysql_db_obj.delete(sql, values)
 
     def __where(self, conditions):

@@ -27,7 +27,8 @@ db_config = {
     'charset': 'utf8'
 }
 # 参数：连接数据库配置和操作的表名
-dao = Dao(config=db_config, table='plant')
+dao = Dao(config=db_config).set_table(table='plant')
+print(dao.get_table())
 
 # 插入数据
 data = {
@@ -45,7 +46,7 @@ data = {
 }
 # 插入，返回插入ID
 insert_id = dao.create(data)
-print('插入ID：' % insert_id)
+print('插入ID：%s' % insert_id)
 
 # 更改数据记录
 res = dao.save({'id': ['=', insert_id], 'candi': ['=', 'candi']}, {'candi': '哈哈', 'yongtu': '用途'})
@@ -79,7 +80,7 @@ print(dao.mysql_db_obj.get_one('select * from plant where id=%s', [1200]))
 ```
 
 关于条件，需满足这种形式
-```json
+```
 {
 	'filed1':['>|<|=|like','value1'],
 	'field2':['not in'|'in',[1,2,3,4,5]]
