@@ -118,12 +118,3 @@ sql = 'select * from plant where id=%s'
 res = mysql_db.get_one(sql, [insert_id])
 print(res)
 ```
->
-
-```
-{
-	'filed1':['>|<|=|like','value1'],
-	'field2':['not in'|'in',[1,2,3,4,5]]
-	'field3':['not between'|'between',[min,max]]
-}
-```
