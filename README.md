@@ -79,7 +79,7 @@ print('查找%s' % res)
 print(dao.mysql_db_obj.get_one('select * from plant where id=%s', [1200]))
 ```
 
-关于条件，需满足这种形式
+关于条件，需满足这种形式，默认and连接
 ```
 {
 	'filed1':['>|<|=|like','value1','and],
@@ -87,7 +87,7 @@ print(dao.mysql_db_obj.get_one('select * from plant where id=%s', [1200]))
 	'field3':['not between'|'between',[min,max]]
 }
 ```
-默认and连接
+
 ---
 >mysqldb_test.py
 
