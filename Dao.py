@@ -11,6 +11,7 @@ from .MySQLDB import MySQLDB
 class Dao(object):
     __table = ''
     mysql_db_obj = None
+    table_schemas = {}
 
     def __init__(self, config):
         self.mysql_db_obj = MySQLDB(config)
@@ -22,6 +23,8 @@ class Dao(object):
         :return: self
         """
         self.__table = table
+        if table not in self.table_schemas:
+            self.__get_table_desc()
         return self
 
     def get_table(self):
@@ -157,3 +160,24 @@ class Dao(object):
                 values.append(item[1])
         where = where.strip('AND ')
         return (where, values)
+
+    def __get_table_desc(self):
+        """
+        获取表结构
+        :return:
+        """
+        sql = 'DESC `%s`' % self.__table
+        res = self.mysql_db_obj.get_all(sql, [])
+        self.table_schemas[self.__table] = {}
+        self.table_schemas[self.__table]['fields'] = {}
+        for column in res:
+            self.table_schemas[self.__table]['fields'][column.get('Field')] = {
+                'type': column.get('Type'),
+                'default': column.get('Default')
+            }
+            if column.get('Key') == 'PRI':
+                self.table_schemas[self.__table]['primary_key'] = column.get('Field')
+            if column.get('Extra') == 'auto_increment':
+                self.table_schemas[self.__table]['auto_increment'] = column.get('Field')
+
+        print(self.table_schemas)
