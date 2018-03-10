@@ -46,7 +46,7 @@ class Dao(object):
         for field, value in data.items():
             if field in self.table_schemas[self.__table]['fields'].keys():
                 fields += '`' + field + '`,'
-                values.append(value)
+                values.append(self.__parse_val(field, value))
                 holder += '%s,'
         fields = fields.strip(',')
         holder = holder.strip(',')
@@ -107,11 +107,10 @@ class Dao(object):
         values = []
         fields = ''
         where, values_ = self.__where(conditions)
-
         for field, value in data.items():
             if field in self.table_schemas[self.__table]['fields'].keys():
                 fields += '`' + field + '` = %s,'
-                values.append(value)
+                values.append(self.__parse_val(field, value))
         values.extend(values_)
         fields = fields.strip(',')
         where = where.strip('AND')
@@ -132,9 +131,9 @@ class Dao(object):
         """
         :param conditions:
         {
-            filed:[>|<|=|like,value],
-            field:[[not] in,[1,2,3,4,5]]
-            field:[[not] between,[1,20]]
+            filed:[>|<|=|like,value,and],
+            field:[[not] in,[1,2,3,4,5],or]
+            field:[[not] between,[1,20],and]
         }
         :return: where values
         """
@@ -142,6 +141,10 @@ class Dao(object):
         values = []
         for field, item in conditions.items():
             if field in self.table_schemas[self.__table]['fields'].keys():
+                if len(item) == 3:
+                    op = item[2].upper()
+                else:
+                    op = 'AND'
                 if item[0].upper() in 'NOT IN':
                     val_str = ''
                     if (isinstance(item[1], list)):
@@ -150,34 +153,39 @@ class Dao(object):
                                 val_str += '"%s",' % i
                             elif isinstance(i, int):
                                 val_str += '%s,' % i
-                        where += '`' + field + '` ' + item[0].upper() + ' (' + val_str.strip(',') + ') AND '
+                        where += '`' + field + '` ' + item[0].upper() + ' (' + val_str.strip(',') + ') ' + op + ' '
                     else:
                         raise Exception('conditions error')
                 elif item[0].upper() in 'NOT BETWEEN':
                     if isinstance(item[1], list):
-                        where += '`' + field + '` ' + item[0].upper() + ' %s AND %s AND '
-                        values.append(item[1][0])
-                        values.append(item[1][1])
+                        where += '`' + field + '` ' + item[0].upper() + ' %s AND %s ' + op + ' '
+                        values.append(self.__parse_val(field, item[1][0]))
+                        values.append(self.__parse_val(field, item[1][1]))
                     else:
                         raise Exception('conditions error')
                 else:
-                    where += '`' + field + '` ' + item[0].upper() + ' %s AND '
-                    values.append(item[1])
-        where = where.strip('AND ')
+                    where += '`' + field + '` ' + item[0].upper() + ' %s ' + op + ' '
+                    values.append(self.__parse_val(field, item[1]))
+        where = where.strip('AND ').strip('OR ')
         return (where, values)
 
     def __get_table_desc(self):
         """
         获取表结构
-        :return:
         """
         sql = 'DESC `%s`' % self.__table
         res = self.mysql_db_obj.get_all(sql, [])
         self.table_schemas[self.__table] = {}
         self.table_schemas[self.__table]['fields'] = {}
         for column in res:
+            if 'int' in column.get('Type'):
+                field_type = 'int'
+            elif 'decimal' in column.get('Type'):
+                field_type = 'decimal'
+            else:
+                field_type = 'string'
             self.table_schemas[self.__table]['fields'][column.get('Field')] = {
-                'type': column.get('Type'),
+                'type': field_type,
                 # 'default': column.get('Default'),
                 # 'is_null': column.get('Null')
             }
@@ -186,4 +194,25 @@ class Dao(object):
             if column.get('Extra') == 'auto_increment':
                 self.table_schemas[self.__table]['auto_increment'] = column.get('Field')
 
-        print(self.table_schemas)
+    def __parse_val(self, field, value):
+        """
+        转换数据类型
+        :param field: 字段
+        :param value: 字段值
+        :return: 转化后的值
+        """
+        field_type = self.__get_field_type(field)
+        if field_type == 'int':
+            return int(value)
+        elif field_type == 'decimal':
+            return float(value)
+        else:
+            return str(value)
+
+    def __get_field_type(self, field):
+        """
+        获取字段类型
+        :param field: 字段
+        :return: 类型
+        """
+        return self.table_schemas[self.__table]['fields'].get(field).get('type')

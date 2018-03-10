@@ -54,9 +54,9 @@ print('保存：%s' % res)
 
 # 删除条件
 con = {
-    'id': ['=', insert_id],
-    'candi': ['like', '%candi%'],
-    'ke': ['in', ['ke', 'ddd']],
+    'id': ['=', insert_id,'and'],
+    'candi': ['like', '%candi%','or'],
+    'ke': ['in', ['ke', 'ddd'],'and'],
     'insert_time': ['between', [0, int(time.time())]]
 }
 # 删除
@@ -82,11 +82,12 @@ print(dao.mysql_db_obj.get_one('select * from plant where id=%s', [1200]))
 关于条件，需满足这种形式
 ```
 {
-	'filed1':['>|<|=|like','value1'],
-	'field2':['not in'|'in',[1,2,3,4,5]]
+	'filed1':['>|<|=|like','value1','and],
+	'field2':['not in'|'in',[1,2,3,4,5],'or']
 	'field3':['not between'|'between',[min,max]]
 }
 ```
+默认and连接
 ---
 >mysqldb_test.py
 
