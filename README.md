@@ -87,7 +87,6 @@ print(dao.mysql_db_obj.get_one('select * from plant where id=%s', [1200]))
 	'field3':['not between'|'between',[min,max]]
 }
 ```
-
 ---
 >mysqldb_test.py
 
