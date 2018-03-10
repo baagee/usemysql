@@ -44,9 +44,10 @@ class Dao(object):
         values = []
         holder = ''
         for field, value in data.items():
-            fields += '`' + field + '`,'
-            values.append(value)
-            holder += '%s,'
+            if field in self.table_schemas[self.__table]['fields'].keys():
+                fields += '`' + field + '`,'
+                values.append(value)
+                holder += '%s,'
         fields = fields.strip(',')
         holder = holder.strip(',')
         sql = 'INSERT INTO `%s`(%s) VALUES (%s)' % (self.__table, fields, holder)
@@ -66,8 +67,10 @@ class Dao(object):
         for field in fields:
             if field == '*':
                 sql += ' * '
+                break
             else:
-                sql += '`' + field + '`,'
+                if field in self.table_schemas[self.__table]['fields'].keys():
+                    sql += '`' + field + '`,'
         sql = sql.strip(',') + ' FROM `%s` WHERE %s' % (self.__table, where)
         if group_by != '':
             sql += ' GROUP BY `%s`' % (group_by)
@@ -106,8 +109,9 @@ class Dao(object):
         where, values_ = self.__where(conditions)
 
         for field, value in data.items():
-            fields += '`' + field + '` = %s,'
-            values.append(value)
+            if field in self.table_schemas[self.__table]['fields'].keys():
+                fields += '`' + field + '` = %s,'
+                values.append(value)
         values.extend(values_)
         fields = fields.strip(',')
         where = where.strip('AND')
@@ -137,27 +141,28 @@ class Dao(object):
         where = ''
         values = []
         for field, item in conditions.items():
-            if item[0].upper() in 'NOT IN':
-                val_str = ''
-                if (isinstance(item[1], list)):
-                    for i in item[1]:
-                        if isinstance(i, str):
-                            val_str += '"%s",' % i
-                        elif isinstance(i, int):
-                            val_str += '%s,' % i
-                    where += '`' + field + '` ' + item[0].upper() + ' (' + val_str.strip(',') + ') AND '
+            if field in self.table_schemas[self.__table]['fields'].keys():
+                if item[0].upper() in 'NOT IN':
+                    val_str = ''
+                    if (isinstance(item[1], list)):
+                        for i in item[1]:
+                            if isinstance(i, str):
+                                val_str += '"%s",' % i
+                            elif isinstance(i, int):
+                                val_str += '%s,' % i
+                        where += '`' + field + '` ' + item[0].upper() + ' (' + val_str.strip(',') + ') AND '
+                    else:
+                        raise Exception('conditions error')
+                elif item[0].upper() in 'NOT BETWEEN':
+                    if isinstance(item[1], list):
+                        where += '`' + field + '` ' + item[0].upper() + ' %s AND %s AND '
+                        values.append(item[1][0])
+                        values.append(item[1][1])
+                    else:
+                        raise Exception('conditions error')
                 else:
-                    raise Exception('conditions error')
-            elif item[0].upper() in 'NOT BETWEEN':
-                if isinstance(item[1], list):
-                    where += '`' + field + '` ' + item[0].upper() + ' %s AND %s AND '
-                    values.append(item[1][0])
-                    values.append(item[1][1])
-                else:
-                    raise Exception('conditions error')
-            else:
-                where += '`' + field + '` ' + item[0].upper() + ' %s AND '
-                values.append(item[1])
+                    where += '`' + field + '` ' + item[0].upper() + ' %s AND '
+                    values.append(item[1])
         where = where.strip('AND ')
         return (where, values)
 
@@ -173,7 +178,8 @@ class Dao(object):
         for column in res:
             self.table_schemas[self.__table]['fields'][column.get('Field')] = {
                 'type': column.get('Type'),
-                'default': column.get('Default')
+                # 'default': column.get('Default'),
+                # 'is_null': column.get('Null')
             }
             if column.get('Key') == 'PRI':
                 self.table_schemas[self.__table]['primary_key'] = column.get('Field')
