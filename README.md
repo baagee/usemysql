@@ -6,7 +6,7 @@ python简单的方式使用mysql数据库，分为Dao类和MySQLDB类
 - cd usmysql
 - tar zxvf usemysql-1.0.tar.gz
 - cd usemysql-1.0
-- python setup.py install
+- python3 setup.py install
 
 
 ### 简单实例：
@@ -122,10 +122,10 @@ print(res)
 
 # 更新数据
 sql = 'update plant set ke=%s where id=%s'
-res = mysql_db.update(sql, ['hello word', insert_id])
+res = mysql_db.update(sql, ['hello world', insert_id])
 print(res)
 
-# 擦损一条记录 返回字典
+# 查询一条记录 返回字典
 sql = 'select * from plant where id=%s'
 res = mysql_db.get_one(sql, [insert_id])
 print(res)
