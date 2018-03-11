@@ -77,6 +77,15 @@ class MySQLDB(object):
         else:
             return None
 
+    def batch_insert(self, sql, data=[]):
+        """
+        批量插入数据，返回插入数据条数
+        :param sql: sql语句
+        :param data: 批量参数，列表
+        :return: 影响行数
+        """
+        return self.__execute_many(sql, data)
+
     def delete(self, sql, params=[]):
         """
         删除数据
@@ -96,6 +105,15 @@ class MySQLDB(object):
     def __execute(self, sql, params):
         try:
             count = self.cursor.execute(sql, params)
+            self.link.commit()
+            return count
+        except Exception as e:
+            self.link.rollback()
+            raise e
+
+    def __execute_many(self, sql, data=[]):
+        try:
+            count = self.cursor.executemany(sql, data)
             self.link.commit()
             return count
         except Exception as e:

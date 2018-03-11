@@ -29,7 +29,33 @@ db_config = {
 # 参数：连接数据库配置和操作的表名
 dao = Dao(config=db_config).set_table(table='plant')
 print(dao.get_table())
+#切换数据库
+dao.set_table('table_test')
+# 批量插入数据
+res = dao.batch_create([
+    {
+        'name': 'name4',
+        'price': 11.34,
+        'aaa': 8976543345678,
+        'text': 'textsdfhfd'
+    },
+    {
+        'name': 'name4',
+        'price': 11.34,
+        'aaa': 8976543345678,
+        'text': 'textsdfhfd'
+    },
+    {
+        'name': 'name4',
+        'price': 11.34,
+        'aaa': 8976543345678,
+        'text': 'textsdfhfd'
+    },
+])
+print('批量插入:%s' % res)
 
+#切换操作的数据库 
+dao.set_table('plant')
 # 插入数据
 data = {
     'zhongming': 'zongming',
@@ -104,6 +130,15 @@ db_config = {
 }
 # 获取一个数据库实例
 mysql_db = MySQLDB(db_config)
+
+# 批量插入数据
+sql = 'insert into table_test(name, price, aaa, text) VALUES (%s,%s,%s,%s)'
+data = [
+    ['name1', 11.11, 11111, 'text1'],
+    ['name2', 11.12, 22222, 'text2'],
+    ['name3', 11.13, 33333, 'text3'],
+]
+print(mysql_db.batch_insert(sql, data))
 
 # 查询多条数据，返回列表，eg:[{},{}....]
 data = mysql_db.get_all('select * from plant where id<%s', [10])

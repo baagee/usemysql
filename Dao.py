@@ -54,7 +54,25 @@ class Dao(object):
         return self.mysql_db_obj.insert(sql, values)
 
     def batch_create(self, data=[]):
-        pass
+        """
+        批量插入
+        :param data: 插入数据列表，eg:[{},{},{}...]
+        :return: 插入数据条数
+        """
+        fields = []
+        values_list = []
+        for item in data:
+            values = []
+            for field, value in item.items():
+                if field in self.table_schemas[self.__table]['fields'].keys():
+                    if field not in fields:
+                        fields.append(field)
+                    values.append(self.__parse_val(field, value))
+            values_list.append(values)
+        holder = ('%s, ' * len(fields)).strip(', ')
+        fields = '`' + '`,`'.join(fields) + '`'
+        sql = 'INSERT INTO `%s`(%s) VALUES (%s)' % (self.__table, fields, holder)
+        return self.mysql_db_obj.batch_insert(sql, values_list)
 
     def get_all(self, conditions, fields=['*'], group_by='', having={}, order_by={}, limit=[]):
         """
