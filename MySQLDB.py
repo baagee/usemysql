@@ -84,7 +84,7 @@ class MySQLDB(object):
         :param data: 批量参数，列表
         :return: 影响行数
         """
-        return self.__execute_many(sql, data)
+        return self.__execute(sql, data, many=True)
 
     def delete(self, sql, params=[]):
         """
@@ -102,18 +102,12 @@ class MySQLDB(object):
             self.link.close()
             print('Database connection closure')
 
-    def __execute(self, sql, params):
+    def __execute(self, sql, params, many=False):
         try:
-            count = self.cursor.execute(sql, params)
-            self.link.commit()
-            return count
-        except Exception as e:
-            self.link.rollback()
-            raise e
-
-    def __execute_many(self, sql, data=[]):
-        try:
-            count = self.cursor.executemany(sql, data)
+            if many == False:
+                count = self.cursor.execute(sql, params)
+            else:
+                count = self.cursor.executemany(sql, params)
             self.link.commit()
             return count
         except Exception as e:
