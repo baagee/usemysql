@@ -31,6 +31,20 @@ dao = Dao(config=db_config).set_table(table='plant')
 print(dao.get_table())
 #切换数据库
 dao.set_table('table_test')
+res = dao.sum('aaa', {'id': ['>', 2]})
+print(res)
+
+res = dao.count('aaa', {'id': ['>', 2]})
+print(res)
+
+res = dao.avg('aaa', {'id': ['>', 2]})
+print(res)
+
+res = dao.min('aaa', {'id': ['>', 2]})
+print(res)
+
+res = dao.max('aaa', {'id': ['>', 2]})
+print(res)
 # 批量插入数据
 res = dao.batch_create([
     {
