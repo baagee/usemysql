@@ -187,6 +187,51 @@ class Dao(object):
         where = where.strip('AND ').strip('OR ')
         return (where, values)
 
+    def sum(self, field, conditions):
+        """
+        字段和
+        :param field: 字段
+        :param conditions: 条件
+        :return:
+        """
+        return self.__scamm('sum', field, conditions)
+
+    def count(self, field, conditions):
+        """
+        满足条件的数量
+        :param field: 字段
+        :param conditions: 条件
+        :return:
+        """
+        return self.__scamm('count', field, conditions)
+
+    def avg(self, field, conditions):
+        """
+        字段和平均数
+        :param field: 字段
+        :param conditions: 条件
+        :return:
+        """
+        return self.__scamm('avg', field, conditions)
+
+    def min(self, field, conditions):
+        """
+        字段最小值
+        :param field: 字段
+        :param conditions: 条件
+        :return:
+        """
+        return self.__scamm('min', field, conditions)
+
+    def max(self, field, conditions):
+        """
+        字段最大值
+        :param field: 字段
+        :param conditions: 条件
+        :return:
+        """
+        return self.__scamm('max', field, conditions)
+
     def __get_table_desc(self):
         """
         获取表结构
@@ -234,3 +279,20 @@ class Dao(object):
         :return: 类型
         """
         return self.table_schemas[self.__table]['fields'].get(field).get('type')
+
+    def __scamm(self, function, field, conditions):
+        """
+        获取sum,avg,min,max,count的方法
+        :param function: 方法
+        :param field: 字段
+        :param conditions: 条件
+        :return:值
+        """
+        as_field = function.lower() + '_' + field
+        where, values = self.__where(conditions)
+        sql = 'SELECT %s(`%s`) as `%s` FROM %s WHERE %s' % (
+            function.upper(), field, as_field, self.__table, where)
+        res = self.mysql_db_obj.get_one(sql, values)
+        if res != None:
+            return res.get(as_field)
+        return None
